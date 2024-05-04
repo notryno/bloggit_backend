@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using bloggit.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -16,10 +17,10 @@ namespace bloggit.Controllers;
 public class AuthController : ControllerBase
 {
 
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public AuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -37,9 +38,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("/api/auth/register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest register)
+    public async Task<IActionResult> RegisterAsync([FromBody] CustomRegisterRequest register)
     {
-        var user = new IdentityUser { UserName = register.Email, Email = register.Email };
+        var user = new ApplicationUser { UserName = register.UserName, Email = register.Email, FirstName = register.FirstName, LastName = register.LastName };
 
         var result = await _userManager.CreateAsync(user, register.Password);
 

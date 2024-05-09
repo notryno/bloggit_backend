@@ -47,7 +47,7 @@ else
 
 
 // JWT
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+var key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:AccessTokenKey"]);
 builder.Services.AddAuthentication(auth =>
 {
     auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -58,8 +58,8 @@ builder.Services.AddAuthentication(auth =>
      options.SaveToken = true;
      options.TokenValidationParameters = new TokenValidationParameters
      {
-         ValidIssuer = builder.Configuration["Jwt:Issuer"],
-         ValidAudience = builder.Configuration["Jwt:Audience"],
+         ValidIssuer = builder.Configuration["JWT:Issuer"],
+         ValidAudience = builder.Configuration["JWT:Audience"],
          IssuerSigningKey = new SymmetricSecurityKey(key),
          ValidateIssuerSigningKey = true,
          ValidateLifetime = false

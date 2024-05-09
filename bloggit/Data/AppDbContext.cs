@@ -12,6 +12,7 @@ namespace bloggit.Data
         {
         }
         //public DbSet<Product> Products { get; set; }
+        public DbSet<Blogs> Blogs { get; set; }
     }
 }
 

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using bloggit.DTOs;
 using bloggit.Models;
+using bloggit.Services.Service_Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -16,42 +18,28 @@ namespace bloggit.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private readonly IAuthenticationService _authenticationService;
 
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public AuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+    public AuthController(IAuthenticationService authenticationService)
     {
-        _signInManager = signInManager;
-        _userManager = userManager;
+        _authenticationService = authenticationService;
     }
-
 
     [HttpPost("/api/auth/login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest login)
     {
-        var result = await _signInManager.PasswordSignInAsync(login.Email, login.Password, true, lockoutOnFailure: false);
-
-        if (result.Succeeded)
-            return Ok();
-        return Unauthorized();
+        var token = await _authenticationService.TokenLoginAsync(login.Email, login.Password);
+        return Ok(new TokenLoginResponse
+        {
+            Token = token
+        });
     }
 
     [HttpPost("/api/auth/register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] CustomRegisterRequest register)
+    public async Task<IActionResult> RegisterAsync([FromBody] DTOs.RegisterRequest register)
     {
-        var user = new ApplicationUser { UserName = register.UserName, Email = register.Email, FirstName = register.FirstName, LastName = register.LastName };
-
-        var result = await _userManager.CreateAsync(user, register.Password);
-
-        if (result.Succeeded)
-        {
-            await _signInManager.SignInAsync(user, isPersistent: false); // Automatically sign in the user after registration
-            return Ok();
-        }
-
-        // If registration fails, return the error messages
-        return BadRequest(result.Errors);
+        await _authenticationService.Register(register.FirstName, register.LastName, register.Email, register.Password);
+        return Ok(new { message = "Registration successful" });
     }
 
 }

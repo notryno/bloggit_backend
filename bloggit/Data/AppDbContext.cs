@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bloggit.Data
 {
-	public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
-	{
-		public AppDbContext(DbContextOptions options) : base(options)
-		{
-		}
-		public DbSet<Product> Products { get; set; }
-	}
+    public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
+    {
+        public AppDbContext(DbContextOptions options) : base(options)
+        {
+        }
+        //public DbSet<Product> Products { get; set; }
+    }
 }
 

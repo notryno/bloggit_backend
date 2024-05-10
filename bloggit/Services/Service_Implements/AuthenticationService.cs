@@ -55,7 +55,8 @@ namespace bloggit.Services.Service_Implements
             await _userManager.AddToRoleAsync(newUser, "User");
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
             var token = ToUrlSafeBase64(emailConfirmationToken);
-            await _emailService.SendEmailConfirmationEmailAsync(firstName, lastName, newUser.Id, email, token);
+            // await _emailService.SendEmailConfirmationEmailAsync(firstName, lastName, newUser.Id, email, token);
+            await _emailService.SendForgotPasswordEmailAsync(firstName, lastName, email, token);
         }
 
         public async Task ConfirmEmail(string token, string userId)

@@ -45,10 +45,18 @@ else
 builder.Services.AddSignalR();
 
 //Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        // Configure two-factor authentication
+        options.Tokens.ProviderMap["Default"] = new TokenProviderDescriptor(
+            typeof(DataProtectorTokenProvider<ApplicationUser>));
+        options.Tokens.ChangeEmailTokenProvider = "Default";
+        options.Tokens.ChangePhoneNumberTokenProvider = "Default";
+        options.Tokens.EmailConfirmationTokenProvider = "Default";
+        options.Tokens.PasswordResetTokenProvider = "Default";
+    })
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddSignInManager()
-    .AddRoles<IdentityRole>();
+    .AddDefaultTokenProviders();
 
 // JWT
 var key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:AccessTokenKey"]);

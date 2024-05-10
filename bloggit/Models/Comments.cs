@@ -9,8 +9,8 @@
         public int? ReplyId { get; set; }
         public Blogs Blog { get; set; }
         public ApplicationUser User { get; set; }
-        
         public Comments ReplyToComment { get; set; }
         public ICollection<Comments> Replies { get; set; }
         public ICollection<Reactions> Reaction { get; set; }
+        public ICollection<Logs> Logs { get; set; }
     }

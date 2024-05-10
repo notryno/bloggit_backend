@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bloggit.Data;
 
@@ -10,9 +11,11 @@ using bloggit.Data;
 namespace bloggit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240510043627_sumamry")]
+    partial class sumamry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,6 +291,9 @@ namespace bloggit.Migrations
                     b.Property<bool>("isDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("isLatest")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Author");
@@ -324,6 +330,9 @@ namespace bloggit.Migrations
                     b.Property<bool>("isDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("isLatest")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BlogId");
@@ -333,44 +342,6 @@ namespace bloggit.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Logs", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CommentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Logs");
                 });
 
             modelBuilder.Entity("bloggit.Models.Reactions", b =>
@@ -402,6 +373,9 @@ namespace bloggit.Migrations
                     b.Property<bool>("isDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("isLatest")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BlogId");
@@ -430,6 +404,9 @@ namespace bloggit.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("isDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("isLatest")
                         .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
@@ -540,31 +517,6 @@ namespace bloggit.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("bloggit.Models.Logs", b =>
-                {
-                    b.HasOne("bloggit.Models.Blogs", "Blog")
-                        .WithMany("Logs")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.Comments", "Comment")
-                        .WithMany("Logs")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.ApplicationUser", "User")
-                        .WithMany("Logs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("bloggit.Models.Reactions", b =>
                 {
                     b.HasOne("bloggit.Models.Blogs", "Blog")
@@ -595,23 +547,17 @@ namespace bloggit.Migrations
                     b.Navigation("Blogs");
 
                     b.Navigation("Comments");
-
-                    b.Navigation("Logs");
                 });
 
             modelBuilder.Entity("bloggit.Models.Blogs", b =>
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Logs");
-
                     b.Navigation("Reaction");
                 });
 
             modelBuilder.Entity("bloggit.Models.Comments", b =>
                 {
-                    b.Navigation("Logs");
-
                     b.Navigation("Reaction");
 
                     b.Navigation("Replies");

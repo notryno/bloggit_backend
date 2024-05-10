@@ -16,6 +16,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, str
     public DbSet<Comments> Comments { get; set; }
     public DbSet<Tags> Tags { get; set; }
     public DbSet<Reactions> Reactions { get; set; }
+    public DbSet<Logs> Logs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +63,29 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, str
             .HasForeignKey(r => r.CommentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Blogs>()
+            .HasMany(b => b.Tags)
+            .WithMany(t => t.Blogs)
+            .UsingEntity(j => j.ToTable("BlogTags"));
+        
+        modelBuilder.Entity<Logs>()
+            .HasOne(log => log.Blog)
+            .WithMany(blog => blog.Logs)
+            .HasForeignKey(log => log.BlogId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Logs>()
+            .HasOne(log => log.Comment)
+            .WithMany(comment => comment.Logs)
+            .HasForeignKey(log => log.CommentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Logs>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.Logs)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
 
             
     }

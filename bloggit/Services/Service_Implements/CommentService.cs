@@ -28,7 +28,7 @@ namespace bloggit.Services.Service_Implements
                 UserId = model.UserId,
                 ReplyId = model.ReplyId,
                 CreatedOn = DateTime.Now,
-                isLatest = true
+                // isLatest = true
             };
 
             _context.Comments.Add(comment);
@@ -49,7 +49,7 @@ namespace bloggit.Services.Service_Implements
         public async Task<CommentDto> UpdateCommentAsync(UpdateCommentDto model)
         {
             var existingComment = await _context.Comments
-                .Where(c => c.Id == model.Id && !c.isDeleted && c.isLatest)
+                .Where(c => c.Id == model.Id && !c.isDeleted)
                 .FirstOrDefaultAsync();
 
             if (existingComment == null)
@@ -58,7 +58,7 @@ namespace bloggit.Services.Service_Implements
             }
 
             // Set the existing comment's isLatest to 0
-            existingComment.isLatest = false;
+            // existingComment.isLatest = false;
 
             // Create a new comment entry with updated content
             var newComment = new Comments
@@ -67,7 +67,7 @@ namespace bloggit.Services.Service_Implements
                 BlogId = existingComment.BlogId,
                 UserId = existingComment.UserId,
                 ReplyId = existingComment.ReplyId,
-                isLatest = true,
+                // isLatest = true,
                 ModifiedOn = DateTime.Now
             };
 
@@ -90,7 +90,7 @@ namespace bloggit.Services.Service_Implements
         public async Task<bool> DeleteCommentAsync(int id)
         {
             var comment = await _context.Comments
-                .Where(c => c.Id == id && !c.isDeleted && c.isLatest)
+                .Where(c => c.Id == id && !c.isDeleted)
                 .FirstOrDefaultAsync();
             if (comment == null)
                 throw new Exception("Comment not found");
@@ -105,7 +105,7 @@ namespace bloggit.Services.Service_Implements
         {
             var comment = await _context.Comments
                 .Include(c => c.Reaction)
-                .Where(c => c.Id == id && !c.isDeleted && c.isLatest)
+                .Where(c => c.Id == id && !c.isDeleted)
                 .FirstOrDefaultAsync();
             if (comment == null)
                 throw new Exception("Comment not found");
@@ -136,7 +136,7 @@ namespace bloggit.Services.Service_Implements
         {
             var comments = await _context.Comments
                 .Include(c => c.Reaction)
-                .Where(commment => !commment.isDeleted && commment.isLatest)
+                .Where(commment => !commment.isDeleted)
                 .ToListAsync();
 
             var commentDtos = comments.Select(comment => new CommentDto

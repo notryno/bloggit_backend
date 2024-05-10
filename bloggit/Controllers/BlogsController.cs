@@ -28,7 +28,7 @@ using bloggit.DTOs;
             return Ok(result);
         }
 
-        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogDto model)
         {
             model.Id = id;

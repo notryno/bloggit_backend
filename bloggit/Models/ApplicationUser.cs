@@ -14,6 +14,7 @@ namespace bloggit.Models
 
         public ICollection<Blogs> Blogs { get; set; }
         public ICollection<Comments> Comments { get; set; }
+        public ICollection<Logs> Logs { get; set; }
         
         public DateTime? CreatedOn { get; set; }
         public DateTime? ModifiedOn { get; set; }

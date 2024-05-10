@@ -64,7 +64,7 @@ namespace bloggit.Services.Service_Implements
                 CommentId = model.CommentId,
                 UserId = model.UserId,
                 CreatedOn = DateTime.Now,
-                isLatest = true
+                // isLatest = true
             };
 
             _context.Reactions.Add(reaction);

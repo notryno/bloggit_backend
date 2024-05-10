@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using bloggit.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using bloggit.Hubs;
 using Microsoft.IdentityModel.Tokens;
 using bloggit.Services.Service_Interfaces;
 using bloggit.Services.Service_Implements;
@@ -39,6 +40,9 @@ else
     // Handle the case where the connection string is null or not found in configuration
     throw new InvalidOperationException("AppDbConnectionString is not configured.");
 }
+
+
+builder.Services.AddSignalR();
 
 //Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -86,6 +90,7 @@ builder.Services.AddScoped<IGmailEmailProvider, GmailEmailProvider>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ILogService, LogService>();
 
 var app = builder.Build();
 
@@ -104,12 +109,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<NotificationHub>("/notificationHub");
+});
 
 using (var scope = app.Services.CreateScope())
 {

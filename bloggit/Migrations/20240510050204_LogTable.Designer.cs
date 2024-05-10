@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bloggit.Data;
 
@@ -10,9 +11,11 @@ using bloggit.Data;
 namespace bloggit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240510050204_LogTable")]
+    partial class LogTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -358,17 +361,11 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BlogId");
 
                     b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Logs");
                 });
@@ -552,17 +549,9 @@ namespace bloggit.Migrations
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("bloggit.Models.ApplicationUser", "User")
-                        .WithMany("Logs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Blog");
 
                     b.Navigation("Comment");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("bloggit.Models.Reactions", b =>
@@ -595,8 +584,6 @@ namespace bloggit.Migrations
                     b.Navigation("Blogs");
 
                     b.Navigation("Comments");
-
-                    b.Navigation("Logs");
                 });
 
             modelBuilder.Entity("bloggit.Models.Blogs", b =>

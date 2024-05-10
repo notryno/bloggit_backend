@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using bloggit.DTOs;
 using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace bloggit.Services.Service_Implements
 {
@@ -24,11 +25,27 @@ namespace bloggit.Services.Service_Implements
             var blog = new Blogs
             {
                 Title = model.Title,
+                Summary = model.Summary,
                 Content = model.Content,
                 Author = model.Author,
                 Image = model.Image,
-                CreatedOn = DateTime.Now
+                CreatedOn = DateTime.Now,
+                isLatest = true
             };
+            
+            if (model.Tags != null && model.Tags.Any())
+            {
+                foreach (var tagName in model.Tags)
+                {
+                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new Tags { Name = tagName };
+                        _context.Tags.Add(tag);
+                    }
+                    blog.Tags.Add(tag);
+                }
+            }
 
             _context.Blogs.Add(blog);
             await _context.SaveChangesAsync();
@@ -37,6 +54,7 @@ namespace bloggit.Services.Service_Implements
             {
                 Id = blog.Id,
                 Title = blog.Title,
+                Summary = model.Summary,
                 Content = blog.Content,
                 Author = blog.Author,
                 Image = blog.Image
@@ -47,45 +65,75 @@ namespace bloggit.Services.Service_Implements
 
         public async Task<BlogDto> UpdateBlogAsync(BlogDto model)
         {
-            var blog = await _context.Blogs
-                .Where(b => b.Id == model.Id && !b.isDeleted)
+            var existingBlog = await _context.Blogs
+                .Where(b => b.Id == model.Id && !b.isDeleted && b.isLatest)
                 .FirstOrDefaultAsync();
-            if (blog == null)
+    
+            if (existingBlog == null)
             {
                 throw new Exception("Blog not found");
             }
 
-            // Perform manual mapping
-            blog.Title = model.Title;
-            blog.Content = model.Content;
-            blog.Author = model.Author;
-            blog.Image = model.Image;
+            // Set the existing blog's isLatest to 0
+            existingBlog.isLatest = false;
+
+            // Create a new blog entry with updated data
+            var newBlog = new Blogs
+            {
+                Title = model.Title,
+                Summary = model.Summary,
+                Content = model.Content,
+                Author = model.Author,
+                Image = model.Image,
+                CreatedOn = existingBlog.CreatedOn,
+                ModifiedOn = DateTime.Now,
+                isLatest = true
+            };
+            
+            if (model.Tags != null && model.Tags.Any())
+            {
+                foreach (var tagName in model.Tags)
+                {
+                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new Tags { Name = tagName };
+                        _context.Tags.Add(tag);
+                    }
+                    newBlog.Tags.Add(tag);
+                }
+            }
+
+            _context.Blogs.Add(newBlog);
 
             await _context.SaveChangesAsync();
 
             var updatedBlogDto = new BlogDto
             {
-                Id = blog.Id,
-                Title = blog.Title,
-                Content = blog.Content,
-                Author = blog.Author,
-                Image = blog.Image
+                Id = newBlog.Id,
+                Title = newBlog.Title,
+                Summary = newBlog.Summary,
+                Content = newBlog.Content,
+                Author = newBlog.Author,
+                Image = newBlog.Image,
             };
 
             return updatedBlogDto;
         }
 
+
         public async Task<bool> DeleteBlogAsync(int id)
         {
             var blog = await _context.Blogs
-                .Where(b => b.Id == id && !b.isDeleted)
+                .Where(b => b.Id == id && !b.isDeleted && b.isLatest)
                 .FirstOrDefaultAsync();
             if (blog == null)
             {
                 throw new Exception("Blog not found");
             }
 
-            blog.isDeleted = true; // Mark the blog as deleted
+            blog.isDeleted = true;
+            blog.ModifiedOn = DateTime.Now;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -94,7 +142,7 @@ namespace bloggit.Services.Service_Implements
         public async Task<BlogDto> GetBlogByIdAsync(int id)
         {
             var blog = await _context.Blogs
-                .Where(b => b.Id == id && !b.isDeleted)
+                .Where(b => b.Id == id && !b.isDeleted && b.isLatest)
                 .FirstOrDefaultAsync();
             if (blog == null)
             {
@@ -105,6 +153,7 @@ namespace bloggit.Services.Service_Implements
             {
                 Id = blog.Id,
                 Title = blog.Title,
+                Summary = blog.Summary,
                 Content = blog.Content,
                 Author = blog.Author,
                 Image = blog.Image
@@ -116,13 +165,14 @@ namespace bloggit.Services.Service_Implements
         public async Task<IEnumerable<BlogDto>> GetAllBlogsAsync()
         {
             var blogs = await _context.Blogs
-                .Where(blog => !blog.isDeleted)
+                .Where(blog => !blog.isDeleted && blog.isLatest)
                 .ToListAsync();
 
             var blogDtos = blogs.Select(blog => new BlogDto
             {
                 Id = blog.Id,
                 Title = blog.Title,
+                Summary = blog.Summary,
                 Content = blog.Content,
                 Author = blog.Author,
                 Image = blog.Image

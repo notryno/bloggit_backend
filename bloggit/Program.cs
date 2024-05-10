@@ -84,6 +84,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGmailEmailProvider, GmailEmailProvider>();
 builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IReactionService, ReactionService>();
 
 var app = builder.Build();
 

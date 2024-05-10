@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace bloggit.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
         _authenticationService = authenticationService;
     }
 
-    [HttpPost("/api/auth/login")]
+    [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest login)
     {
         var token = await _authenticationService.TokenLoginAsync(login.Email, login.Password);
@@ -35,10 +35,10 @@ public class AuthController : ControllerBase
         });
     }
 
-    [HttpPost("/api/auth/register")]
+    [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] DTOs.RegisterRequest register)
     {
-        await _authenticationService.Register(register.FirstName, register.LastName, register.Email, register.Password);
+        await _authenticationService.Register(register.LastName, register.FirstName, register.Email, register.Password, register.UserName, register.Country, register.Gender, register.ProfilePicture);
         return Ok(new { message = "Registration successful" });
     }
 

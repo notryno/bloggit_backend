@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bloggit.Data;
 
@@ -10,9 +11,11 @@ using bloggit.Data;
 namespace bloggit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240509120010_tags")]
+    partial class tags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,10 +177,6 @@ namespace bloggit.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
@@ -189,10 +188,6 @@ namespace bloggit.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -226,9 +221,6 @@ namespace bloggit.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("ProfilePicture")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -238,9 +230,6 @@ namespace bloggit.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -271,21 +260,12 @@ namespace bloggit.Migrations
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -320,11 +300,8 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isDeleted")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -337,70 +314,15 @@ namespace bloggit.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("bloggit.Models.Reactions", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CommentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reactions");
-                });
-
             modelBuilder.Entity("bloggit.Models.Tags", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -510,31 +432,6 @@ namespace bloggit.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("bloggit.Models.Reactions", b =>
-                {
-                    b.HasOne("bloggit.Models.Blogs", "Blog")
-                        .WithMany("Reaction")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.Comments", "Comment")
-                        .WithMany("Reaction")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("bloggit.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Blogs");
@@ -545,14 +442,10 @@ namespace bloggit.Migrations
             modelBuilder.Entity("bloggit.Models.Blogs", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Reaction");
                 });
 
             modelBuilder.Entity("bloggit.Models.Comments", b =>
                 {
-                    b.Navigation("Reaction");
-
                     b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618

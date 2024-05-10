@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bloggit.Data;
 
@@ -10,9 +11,11 @@ using bloggit.Data;
 namespace bloggit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240509170952_IsLatest")]
+    partial class IsLatest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,10 +177,6 @@ namespace bloggit.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
@@ -189,10 +188,6 @@ namespace bloggit.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -226,9 +221,6 @@ namespace bloggit.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("ProfilePicture")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -238,9 +230,6 @@ namespace bloggit.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -271,9 +260,6 @@ namespace bloggit.Migrations
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime(6)");
 
@@ -281,11 +267,8 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isLatest")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -320,11 +303,11 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isDeleted")
+                        .HasColumnType("int");
 
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isLatest")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -363,11 +346,8 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isLatest")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -396,11 +376,8 @@ namespace bloggit.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("isLatest")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

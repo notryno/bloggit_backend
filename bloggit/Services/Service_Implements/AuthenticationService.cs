@@ -1,11 +1,11 @@
-﻿using bloggit.Models;
+﻿using bloggit.DTOs;
+using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
 using bloggit.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace bloggit.Services.Service_Implements
 {
-
     public class AuthenticationService : IAuthenticationService
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -13,7 +13,8 @@ namespace bloggit.Services.Service_Implements
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
 
-        public AuthenticationService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ITokenService tokenService, IEmailService emailService)
+        public AuthenticationService(SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager, ITokenService tokenService, IEmailService emailService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -24,21 +25,30 @@ namespace bloggit.Services.Service_Implements
         public async Task<string> TokenLoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-                throw new DomainException("Invalid email or password", 401);
+            if (user == null) throw new DomainException("Invalid email or password", 401);
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
-            if (!result.Succeeded)
-                throw new DomainException("Invalid email or password", 401);
+            if (!result.Succeeded) throw new DomainException("Invalid email or password", 401);
 
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
             return _tokenService.GenerateToken(user, role!);
         }
 
-        public async Task Register(string firstName, string lastName, string email, string password)
+        public async Task Register(string firstName, string lastName, string email, string password, string userName, string country, string gender, string? profilePicture)
         {
-            var newUser = new ApplicationUser { FirstName = firstName, LastName = lastName, UserName = email, Email = email };
+            var newUser = new ApplicationUser
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                UserName = userName,
+                Country = country,
+                Gender = gender,
+                ProfilePicture = profilePicture,
+                CreatedOn = DateTime.Now,
+                isDeleted = false
+            };
             var result = await _userManager.CreateAsync(newUser, password);
             ValidateIdentityResult(result);
 
@@ -55,7 +65,6 @@ namespace bloggit.Services.Service_Implements
             var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationToken);
             ValidateIdentityResult(result);
         }
-
 
         public async Task ForgotPassword(string email)
         {
@@ -96,7 +105,5 @@ namespace bloggit.Services.Service_Implements
         {
             return urlSafeBase64String.Replace('-', '+').Replace('~', '/').Replace('_', '=');
         }
-
-
     }
 }

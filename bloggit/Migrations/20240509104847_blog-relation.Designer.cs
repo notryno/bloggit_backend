@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bloggit.Data;
 
@@ -10,29 +11,16 @@ using bloggit.Data;
 namespace bloggit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240509104847_blog-relation")]
+    partial class blogrelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("BlogsTags", b =>
-                {
-                    b.Property<int>("BlogsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BlogsId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("BlogTags", (string)null);
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -174,10 +162,6 @@ namespace bloggit.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
@@ -189,10 +173,6 @@ namespace bloggit.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -226,9 +206,6 @@ namespace bloggit.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("ProfilePicture")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -238,9 +215,6 @@ namespace bloggit.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -271,155 +245,22 @@ namespace bloggit.Migrations
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Author");
 
                     b.ToTable("Blogs");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Comments", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("ReplyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("ReplyId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Reactions", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CommentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reactions");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Tags", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("isLatest")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tags");
-                });
-
-            modelBuilder.Entity("BlogsTags", b =>
-                {
-                    b.HasOne("bloggit.Models.Blogs", null)
-                        .WithMany()
-                        .HasForeignKey("BlogsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("bloggit.Models.Tags", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -484,76 +325,9 @@ namespace bloggit.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("bloggit.Models.Comments", b =>
-                {
-                    b.HasOne("bloggit.Models.Blogs", "Blog")
-                        .WithMany("Comments")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("bloggit.Models.Comments", "ReplyToComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ReplyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.ApplicationUser", "User")
-                        .WithMany("Comments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("ReplyToComment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Reactions", b =>
-                {
-                    b.HasOne("bloggit.Models.Blogs", "Blog")
-                        .WithMany("Reaction")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.Comments", "Comment")
-                        .WithMany("Reaction")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("bloggit.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("bloggit.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Blogs");
-
-                    b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Blogs", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Reaction");
-                });
-
-            modelBuilder.Entity("bloggit.Models.Comments", b =>
-                {
-                    b.Navigation("Reaction");
-
-                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }

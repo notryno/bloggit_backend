@@ -9,7 +9,7 @@ using bloggit.DTOs;
 
 
 
-    [Route("api/[controller]")]
+    [Route("api/blog")]
     [ApiController]
     [Authorize]
     public class BlogsController : ControllerBase
@@ -21,7 +21,7 @@ using bloggit.DTOs;
             _blogService = blogService;
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateBlogAsync([FromBody] BlogCreateRequest model)
         {
             var result = await _blogService.CreateBlogAsync(model);
@@ -29,6 +29,7 @@ using bloggit.DTOs;
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogUpdateRequest model)
         {
             return await _blogService.UpdateBlogAsync(id, model);
@@ -46,8 +47,7 @@ using bloggit.DTOs;
             return await _blogService.GetBlogByIdAsync(id);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [HttpGet("/api/blogs")]
         public async Task<IActionResult> GetAllBlogsAsync()
         {
             return await _blogService.GetAllBlogsAsync();

@@ -19,11 +19,6 @@ using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 if (connectionString != null)
 {
@@ -45,16 +40,17 @@ else
 builder.Services.AddSignalR();
 
 //Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-    {
-        // Configure two-factor authentication
-        options.Tokens.ProviderMap["Default"] = new TokenProviderDescriptor(
-            typeof(DataProtectorTokenProvider<ApplicationUser>));
-        options.Tokens.ChangeEmailTokenProvider = "Default";
-        options.Tokens.ChangePhoneNumberTokenProvider = "Default";
-        options.Tokens.EmailConfirmationTokenProvider = "Default";
-        options.Tokens.PasswordResetTokenProvider = "Default";
-    })
+// builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    // {
+    //     // Configure two-factor authentication
+    //     options.Tokens.ProviderMap["Default"] = new TokenProviderDescriptor(
+    //         typeof(DataProtectorTokenProvider<ApplicationUser>));
+    //     options.Tokens.ChangeEmailTokenProvider = "Default";
+    //     options.Tokens.ChangePhoneNumberTokenProvider = "Default";
+    //     options.Tokens.EmailConfirmationTokenProvider = "Default";
+    //     options.Tokens.PasswordResetTokenProvider = "Default";
+    // })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
@@ -64,10 +60,14 @@ builder.Services.AddAuthentication(auth =>
 {
     auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    auth.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
 })
 .AddJwtBearer(options => {
      options.SaveToken = true;
-     options.TokenValidationParameters = new TokenValidationParameters
+     options.RequireHttpsMetadata = false;
+     options.IncludeErrorDetails = true;
+     options.TokenValidationParameters = new TokenValidationParameters()
      {
          ValidateIssuer = true,
          ValidateAudience = true,   
@@ -99,6 +99,11 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
@@ -117,31 +122,33 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseRouting();
+// app.UseRouting();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapHub<NotificationHub>("/notificationHub");
-});
+app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var rolesToCreate = new List<string> { "Admin", "User" };
+// app.UseEndpoints(endpoints =>
+// {
+//     endpoints.MapControllers();
+//     endpoints.MapHub<NotificationHub>("/notificationHub");
+// });
 
-    foreach (var roleName in rolesToCreate)
-    {
-        if (!await roleManager.RoleExistsAsync(roleName))
-        {
-            await roleManager.CreateAsync(new IdentityRole(roleName));
-        }
-    }
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+//     var rolesToCreate = new List<string> { "Admin", "User" };
+//
+//     foreach (var roleName in rolesToCreate)
+//     {
+//         if (!await roleManager.RoleExistsAsync(roleName))
+//         {
+//             await roleManager.CreateAsync(new IdentityRole(roleName));
+//         }
+//     }
+// }
 
 app.Run();
 

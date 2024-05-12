@@ -51,6 +51,7 @@ using bloggit.DTOs;
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllBlogsAsync()
         {
             var result = await _blogService.GetAllBlogsAsync();

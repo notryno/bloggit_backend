@@ -17,43 +17,28 @@ namespace bloggit.Services.Service_Implements
             _issuer = configuration.GetSection("JWT:Issuer").Value!;
             _audience = configuration.GetSection("JWT:Audience").Value!;
         }
-        public string GenerateToken(ApplicationUser user, string role)
+        public string GenerateToken(ApplicationUser user, IList<string> userRoles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_key);
-
-            // // Perform null check on user.Id
-            // var idClaim = user.Id != null ? new Claim(ClaimTypes.NameIdentifier, user.Id) : null;
-            // var emailClaim = user.Email != null ? new Claim(ClaimTypes.Email, user.Email) : null;
-            // var roleClaim = role != null ? new Claim(ClaimTypes.Role, role) : null;
-            //
-            // var claims = new List<Claim>();
-            // if (idClaim != null) claims.Add(idClaim);
-            // if (emailClaim != null) claims.Add(emailClaim);
-            // if (roleClaim != null) claims.Add(roleClaim);
             
-            var claims = new List<Claim>();
-
-            if (!string.IsNullOrEmpty(user.Id))
+            var authClaims = new List<Claim>
             {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-            }
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("userId", user.Id)
+            };
 
-            if (!string.IsNullOrEmpty(user.Email))
+            foreach (var userRole in userRoles)
             {
-                claims.Add(new Claim(ClaimTypes.Email, user.Email));
-            }
-
-            if (!string.IsNullOrEmpty(role))
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
 
             var token = new JwtSecurityToken(
                 issuer: _issuer,
                 audience: _audience,
-                claims: claims,
+                claims: authClaims,
                 expires: DateTime.Now.AddDays(1),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             );

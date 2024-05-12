@@ -2,7 +2,9 @@
 using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
 using bloggit.Exceptions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace bloggit.Services.Service_Implements
 {
@@ -32,7 +34,7 @@ namespace bloggit.Services.Service_Implements
 
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
-            return _tokenService.GenerateToken(user, role!);
+            return _tokenService.GenerateToken(user, roles);
         }
 
         public async Task Register(string firstName, string lastName, string email, string password, string userName, string country, string gender, string? profilePicture)
@@ -57,6 +59,38 @@ namespace bloggit.Services.Service_Implements
             var token = ToUrlSafeBase64(emailConfirmationToken);
             // await _emailService.SendEmailConfirmationEmailAsync(firstName, lastName, newUser.Id, email, token);
             await _emailService.SendForgotPasswordEmailAsync(firstName, lastName, email, token);
+        }
+
+        public async Task<IActionResult> CreateAdmin(string firstName, string lastName, string email, string username,
+            string password, string country, string gender, string? profilePicture)
+        {
+            try
+            {
+                var newAdmin = new ApplicationUser
+                {
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = email,
+                    UserName = username,
+                    Country = country,
+                    Gender = gender,
+                    ProfilePicture = profilePicture,
+                    CreatedOn = DateTime.Now,
+                    isDeleted = false
+                };
+
+                var result = await _userManager.CreateAsync(newAdmin, password);
+                ValidateIdentityResult(result);
+
+                await _userManager.AddToRoleAsync(newAdmin, "Admin");
+
+                return new OkObjectResult(new { message = "Admin created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return new ObjectResult(new { message = "Failed to create admin", error = ex.Message })
+                    { StatusCode = 500 };
+            }
         }
 
         public async Task ConfirmEmail(string token, string userId)

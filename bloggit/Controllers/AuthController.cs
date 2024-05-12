@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest login)
+    public async Task<IActionResult> LoginAsync([FromForm] LoginRequest login)
     {
         var token = await _authenticationService.TokenLoginAsync(login.Email, login.Password);
         return Ok(new TokenLoginResponse
@@ -38,9 +38,17 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] DTOs.RegisterRequest register)
     {
-        await _authenticationService.Register(register.LastName, register.FirstName, register.Email, register.Password, register.UserName, register.Country, register.Gender, register.ProfilePicture);
+        await _authenticationService.Register(register.LastName, register.FirstName, register.Email, register.Password, register.Username, register.Country, register.Gender, register.ProfilePicture);
         return Ok(new { message = "Registration successful" });
     }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpPost("create-admin")]
+    public async Task<IActionResult> CreateAdminAsync([FromBody] CreateAdminRequest request)
+    {
+        return await _authenticationService.CreateAdmin(request.FirstName, request.LastName, request.Email, request.Username, request.Password, request.Country, request.Gender, request.ProfilePicture);
+    }
+
 
 }
 

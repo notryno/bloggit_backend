@@ -15,14 +15,15 @@ namespace bloggit.Services.Service_Implements
             _context = context;
         }
 
-        public async Task LogBlogActionAsync(int blogId, string actionType, string description)
+        public async Task LogBlogActionAsync(int blogId, string actionType, string description, string userId)
         {
             var log = new Logs
             {
                 BlogId = blogId,
                 Type = actionType,
                 Timestamp = DateTime.Now,
-                Description = description
+                Description = description,
+                UserId = userId
             };
 
             _context.Logs.Add(log);

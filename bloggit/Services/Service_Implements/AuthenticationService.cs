@@ -52,13 +52,12 @@ namespace bloggit.Services.Service_Implements
                 isDeleted = false
             };
             var result = await _userManager.CreateAsync(newUser, password);
-            ValidateIdentityResult(result);
+            // ValidateIdentityResult(result);
 
             await _userManager.AddToRoleAsync(newUser, "User");
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
             var token = ToUrlSafeBase64(emailConfirmationToken);
-            // await _emailService.SendEmailConfirmationEmailAsync(firstName, lastName, newUser.Id, email, token);
-            await _emailService.SendForgotPasswordEmailAsync(firstName, lastName, email, token);
+            await _emailService.SendEmailConfirmationEmailAsync(firstName, lastName, newUser.Id, email, token);
         }
 
         public async Task<IActionResult> CreateAdmin(string firstName, string lastName, string email, string username,
@@ -80,7 +79,7 @@ namespace bloggit.Services.Service_Implements
                 };
 
                 var result = await _userManager.CreateAsync(newAdmin, password);
-                ValidateIdentityResult(result);
+                // ValidateIdentityResult(result);
 
                 await _userManager.AddToRoleAsync(newAdmin, "Admin");
 

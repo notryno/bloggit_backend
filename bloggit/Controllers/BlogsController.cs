@@ -11,7 +11,7 @@ using bloggit.DTOs;
 
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class BlogsController : ControllerBase
     {
         private readonly IBlogService _blogService;
@@ -29,32 +29,27 @@ using bloggit.DTOs;
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogDto model)
+        public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogUpdateRequest model)
         {
-            model.Id = id;
-            var result = await _blogService.UpdateBlogAsync(model);
-            return Ok(result);
+            return await _blogService.UpdateBlogAsync(id, model);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBlogAsync(int id)
         {
-            var result = await _blogService.DeleteBlogAsync(id);
-            return Ok(result);
+            return await _blogService.DeleteBlogAsync(id);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBlogByIdAsync(int id)
         {
-            var result = await _blogService.GetBlogByIdAsync(id);
-            return Ok(result);
+            return await _blogService.GetBlogByIdAsync(id);
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllBlogsAsync()
         {
-            var result = await _blogService.GetAllBlogsAsync();
-            return Ok(result);
+            return await _blogService.GetAllBlogsAsync();
         }
     }

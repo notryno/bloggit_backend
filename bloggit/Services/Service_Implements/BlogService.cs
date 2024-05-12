@@ -8,6 +8,8 @@ using bloggit.DTOs;
 using bloggit.Hubs;
 using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Org.BouncyCastle.Asn1.Cms;
 
@@ -16,17 +18,21 @@ namespace bloggit.Services.Service_Implements
     public class BlogService : IBlogService
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ILogService _logService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BlogService(AppDbContext context, IHubContext<NotificationHub> hubContext, ILogService logService)
+        public BlogService(AppDbContext context,UserManager<ApplicationUser> userManager, IHubContext<NotificationHub> hubContext, ILogService logService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _userManager = userManager;
             _hubContext = hubContext;
             _logService = logService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<BlogDto> CreateBlogAsync(BlogCreateRequest model)
+        public async Task<IActionResult> CreateBlogAsync(BlogCreateRequest model)
         {
             var blog = new Blogs
             {
@@ -36,10 +42,9 @@ namespace bloggit.Services.Service_Implements
                 Author = model.Author,
                 Image = model.Image,
                 CreatedOn = DateTime.Now,
-                // isLatest = true,
-                Tags = new List<Tags>() // Initialize the Tags collection
+                Tags = new List<Tags>()
             };
-
+            
             if (model.Tags != null && model.Tags.Any())
             {
                 foreach (var tagName in model.Tags)
@@ -72,22 +77,33 @@ namespace bloggit.Services.Service_Implements
 
             Console.WriteLine("Blog created!");
 
-            await _hubContext.Clients.All.SendAsync("ReceiveNotification", "Admin", "New blog post created!");
+            var currentUser = await GetCurrentUserAsync();
 
-            return blogDto;
+            
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", "Admin", "New blog post created!");
+            await _logService.LogBlogActionAsync(blogDto.Id, "Create", $"User {currentUser.UserName} created blog {blogDto.Id}", currentUser.Id);
+
+            return new OkObjectResult(new { message = "Blog created successfully" });
         }
 
 
-        public async Task<BlogDto> UpdateBlogAsync(BlogDto model)
+        public async Task<IActionResult> UpdateBlogAsync(int id, BlogUpdateRequest model)
         {
             var existingBlog = await _context.Blogs
-                .Where(b => b.Id == model.Id && !b.isDeleted)
+                .Where(b => b.Id == id && !b.isDeleted)
                 .FirstOrDefaultAsync();
-
+            
             if (existingBlog == null)
             {
                 throw new Exception("Blog not found");
             }
+            
+            var currentUser = await GetCurrentUserAsync();
+            if (!IsAuthorized(currentUser, existingBlog))
+            {
+                return new ForbidResult();
+            }
+
 
             // Track changes for logging
             var changes = new List<string>();
@@ -144,27 +160,19 @@ namespace bloggit.Services.Service_Implements
             // Log changes
             if (changes.Any())
             {
-                var changeLog = string.Join(", ", changes);
-                _logService.LogBlogActionAsync(existingBlog.Id, "Update", $"Changes: {changeLog}");
+                foreach (var change in changes)
+                {
+                    await _logService.LogBlogActionAsync(existingBlog.Id, "Update", change, currentUser.Id);
+                }
             }
 
-            await _context.SaveChangesAsync();
+            var result = await _context.SaveChangesAsync();
 
-            var updatedBlogDto = new BlogDto
-            {
-                Id = existingBlog.Id,
-                Title = existingBlog.Title,
-                Summary = existingBlog.Summary,
-                Content = existingBlog.Content,
-                Author = existingBlog.Author,
-                Image = existingBlog.Image,
-            };
-
-            return updatedBlogDto;
+            return new OkObjectResult(new { message = "Blog updated successfully" });
         }
 
 
-        public async Task<bool> DeleteBlogAsync(int id)
+        public async Task<IActionResult> DeleteBlogAsync(int id)
         {
             var blog = await _context.Blogs
                 .Where(b => b.Id == id && !b.isDeleted)
@@ -173,15 +181,18 @@ namespace bloggit.Services.Service_Implements
             {
                 throw new Exception("Blog not found");
             }
+            
+            var currentUser = await GetCurrentUserAsync();
 
             blog.isDeleted = true;
             blog.ModifiedOn = DateTime.Now;
+            await _logService.LogBlogActionAsync(id, "Delete", $"User {currentUser.UserName} deleted blog {id}", currentUser.Id);
             await _context.SaveChangesAsync();
-            return true;
+            return new OkObjectResult(new { message = "Blog deleted successfully" });
         }
 
 
-        public async Task<BlogDto> GetBlogByIdAsync(int id)
+        public async Task<IActionResult> GetBlogByIdAsync(int id)
         {
             var blog = await _context.Blogs
                 .Where(b => b.Id == id && !b.isDeleted)
@@ -189,6 +200,12 @@ namespace bloggit.Services.Service_Implements
             if (blog == null)
             {
                 throw new Exception("Blog not found");
+            }
+            
+            var currentUser = await GetCurrentUserAsync();
+            if (!IsAuthorized(currentUser, blog))
+            {
+                return new ForbidResult();
             }
 
             var blogDto = new BlogDto
@@ -201,10 +218,10 @@ namespace bloggit.Services.Service_Implements
                 Image = blog.Image
             };
 
-            return blogDto;
+            return new OkObjectResult(blogDto);
         }
 
-        public async Task<IEnumerable<BlogDto>> GetAllBlogsAsync()
+        public async Task<IActionResult> GetAllBlogsAsync()
         {
             var blogs = await _context.Blogs
                 .Where(blog => !blog.isDeleted)
@@ -220,7 +237,34 @@ namespace bloggit.Services.Service_Implements
                 Image = blog.Image
             });
 
-            return blogDtos;
+            return new OkObjectResult(blogDtos);
+        }
+        
+        private bool IsAuthorized(ApplicationUser currentUser, Blogs blog)
+        {
+            return currentUser.Id == blog.User.Id || _userManager.IsInRoleAsync(currentUser, "Admin").Result;
+        }
+        
+        private async Task<ApplicationUser?> GetCurrentUserAsync()
+        {
+            var user = _httpContextAccessor.HttpContext.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+            {
+                return null;
+            }
+
+            var userIdClaim = user.FindFirst("userId");
+            if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
+            {
+                return null;
+            }
+            var foundUser = await _userManager.FindByIdAsync(userIdClaim.Value);
+            if (foundUser == null || foundUser.isDeleted)
+            {
+                return null;
+            }
+
+            return foundUser;
         }
     }
 }

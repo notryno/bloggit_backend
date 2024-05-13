@@ -57,34 +57,25 @@ namespace bloggit.Services.Service_Implements
                 throw new Exception("Comment not found");
             }
 
-            // Set the existing comment's isLatest to 0
-            // existingComment.isLatest = false;
+            // Update the existing comment's properties
+            existingComment.Content = model.Content;
+            existingComment.ModifiedOn = DateTime.Now;
 
-            // Create a new comment entry with updated content
-            var newComment = new Comments
-            {
-                Content = model.Content,
-                BlogId = existingComment.BlogId,
-                UserId = existingComment.UserId,
-                ReplyId = existingComment.ReplyId,
-                // isLatest = true,
-                ModifiedOn = DateTime.Now
-            };
-
-            _context.Comments.Add(newComment);
+            // Save changes to the database
             await _context.SaveChangesAsync();
 
             var updatedCommentDto = new CommentDto
             {
-                Id = newComment.Id, // Use the new comment's ID
-                Content = newComment.Content,
-                BlogId = newComment.BlogId,
-                UserId = newComment.UserId,
-                ReplyId = newComment.ReplyId
+                Id = existingComment.Id,
+                Content = existingComment.Content,
+                BlogId = existingComment.BlogId,
+                UserId = existingComment.UserId,
+                ReplyId = existingComment.ReplyId
             };
 
             return updatedCommentDto;
         }
+
 
 
         public async Task<bool> DeleteCommentAsync(int id)
@@ -95,7 +86,7 @@ namespace bloggit.Services.Service_Implements
             if (comment == null)
                 throw new Exception("Comment not found");
 
-            _context.Comments.Remove(comment);
+            comment.isDeleted = true;
             await _context.SaveChangesAsync();
 
             return true;

@@ -38,5 +38,17 @@ namespace bloggit.Controllers
             return Ok(reactionCount);
         }
         
+        [HttpGet("/api/reactions/user/{userId}")]
+        public async Task<IActionResult> GetAllReactionsByUserId(int blogId, string userId)
+        {
+            var userReactions = await _reactionService.GetAllReactionsByUserId(userId);
+            if (userReactions == null)
+            {
+                return NotFound("User reactions not found.");
+            }
+
+            return Ok(userReactions);
+        }
+        
     }
 }

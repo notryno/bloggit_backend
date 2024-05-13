@@ -196,6 +196,7 @@ namespace bloggit.Services.Service_Implements
                 .Include(blog => blog.Tags)
                 .Include(blog => blog.User)
                 .Include(blog => blog.Reaction)
+                .Include(blog => blog.Comments.Where(comment => !comment.isDeleted))
                 .FirstOrDefaultAsync(blog => blog.Id == id && !blog.isDeleted);
 
             if (blog == null)
@@ -223,7 +224,22 @@ namespace bloggit.Services.Service_Implements
                     Id = r.Id,
                     Type = r.Type,
                     UserId = r.UserId,
-                }).ToList()
+                }).ToList(),
+                Comments = blog.Comments?.Select(c => new CommentDto
+                {
+                    Id = c.Id,
+                    Content = c.Content,
+                    BlogId = c.BlogId,
+                    UserId = c.UserId,
+                    ReplyId = c.ReplyId,
+                    CreatedOn = c.CreatedOn,
+                    Reactions = c.Reaction?.Select(r => new ReactionDto
+                    {
+                        Id = r.Id,
+                        Type = r.Type,
+                        UserId = r.UserId,
+                    }).ToList(),
+            }).ToList()
             };
 
             return new OkObjectResult(blogDto); // Return a 200 OK response with the blog DTO

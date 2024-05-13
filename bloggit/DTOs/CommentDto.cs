@@ -10,6 +10,7 @@ namespace bloggit.DTOs
         public DateTime? CreatedOn { get; set; }
         public DateTime? ModifiedOn { get; set; }
         public List<ReactionDto> Reactions { get; set; }
+        public int ReactionCount { get; set; }
     }
 
     public class CreateCommentDto

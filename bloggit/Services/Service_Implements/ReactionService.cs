@@ -21,7 +21,8 @@ namespace bloggit.Services.Service_Implements
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReactionService(AppDbContext context, ILogService logService, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+        public ReactionService(AppDbContext context, ILogService logService, IHttpContextAccessor httpContextAccessor,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _logService = logService;
@@ -39,22 +40,39 @@ namespace bloggit.Services.Service_Implements
                 return new NotFoundObjectResult("Blog not found");
             }
 
-            var existingReaction = blog.Reaction.FirstOrDefault(r => r.UserId == reactionDto.UserId);
-            if (existingReaction != null)
+            var reaction = new Reactions();
+
+            if (reactionDto.CommentId == null)
             {
-                return new ConflictObjectResult("User has already reacted.");
+                var existingReaction = blog.Reaction.FirstOrDefault(r => r.UserId == reactionDto.UserId);
+                if (existingReaction != null)
+                {
+                    return new ConflictObjectResult("User has already reacted.");
+                }
+
+                reaction = new Reactions
+                {
+                    Type = reactionDto.Type,
+                    BlogId = blogId,
+                    UserId = reactionDto.UserId,
+                    CreatedOn = DateTime.Now,
+                };
+            }
+            else
+            {
+                reaction = new Reactions
+                {
+                    Type = reactionDto.Type,
+                    UserId = reactionDto.UserId,
+                    CreatedOn = DateTime.Now,
+                    CommentId = reactionDto.CommentId
+                };
             }
 
-            var reaction = new Reactions
-            {
-                Type = reactionDto.Type,
-                BlogId = blogId,
-                UserId = reactionDto.UserId,
-                CreatedOn = DateTime.Now
-            };
 
             _context.Reactions.Add(reaction);
-            await _logService.LogReactionActionAsync(reactionDto.Type, $"User {currentUser.UserName} {reactionDto.Type.ToLower()} blog {blogId}", currentUser.Id);
+            await _logService.LogReactionActionAsync(reactionDto.Type,
+                $"User {currentUser.UserName} {reactionDto.Type.ToLower()} blog {blogId}", currentUser.Id);
             await _context.SaveChangesAsync();
 
 
@@ -67,19 +85,24 @@ namespace bloggit.Services.Service_Implements
             var reaction = await _context.Reactions.FirstOrDefaultAsync(r => r.Id == reactionId && r.BlogId == blogId);
             if (reaction == null)
             {
-                return new NotFoundObjectResult("Reaction not found");
+                reaction = await _context.Reactions.FirstOrDefaultAsync(r => r.Id == reactionId && r.CommentId == blogId);
+                if (reaction == null)
+                {
+                    return new NotFoundObjectResult("Reaction not found");
+                }
             }
-            
+
             var currentUser = await GetCurrentUserAsync();
 
             _context.Reactions.Remove(reaction);
-            await _logService.LogReactionActionAsync("Un-React", $"User {currentUser.UserName} un-reacted blog {blogId}", currentUser.Id);
+            await _logService.LogReactionActionAsync("Un-React",
+                $"User {currentUser.UserName} un-reacted blog {blogId}", currentUser.Id);
             await _context.SaveChangesAsync();
 
 
             return new OkObjectResult("Reaction removed successfully");
         }
-        
+
         private async Task<ApplicationUser?> GetCurrentUserAsync()
         {
             var user = _httpContextAccessor.HttpContext.User;
@@ -93,6 +116,7 @@ namespace bloggit.Services.Service_Implements
             {
                 return null;
             }
+
             var foundUser = await _userManager.FindByIdAsync(userIdClaim.Value);
             if (foundUser == null || foundUser.isDeleted)
             {
@@ -101,7 +125,7 @@ namespace bloggit.Services.Service_Implements
 
             return foundUser;
         }
-        
+
         public async Task<ReactionCountDto> GetReactionCount(int blogId)
         {
             var upvoteCount = await _context.Reactions
@@ -121,5 +145,20 @@ namespace bloggit.Services.Service_Implements
             return reactionCount;
         }
 
+        public async Task<List<Reactions>> GetAllReactionsByUserId(string userId)
+        {
+            // Ensure the provided user ID is not null or empty
+            if (string.IsNullOrEmpty(userId))
+            {
+                return null;
+            }
+
+            // Retrieve all reactions for the specified user ID
+            var userReactions = await _context.Reactions
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+
+            return userReactions;
+        }
     }
 }

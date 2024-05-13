@@ -15,9 +15,9 @@ public class BlogDto
     
     public ICollection<string>? Tags { get; set; }
     public int ReactionCount { get; set; }
-    //
-    // public ICollection<CommentDto> Comments { get; set; }
-    //
+    
+    public IEnumerable<CommentDto> Comments { get; set; }
+    
     public ICollection<ReactionDto> Reactions { get; set; }
     
     public DateTime? CreatedOn { get; set; }

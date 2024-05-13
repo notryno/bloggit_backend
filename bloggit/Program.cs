@@ -108,9 +108,9 @@ builder.Services.AddEndpointsApiExplorer();
 var app = builder.Build();
 
 app.UseCors(policy =>
-    policy.WithOrigins("http://localhost:3000/", "https://localhost:3001")
+    policy.WithOrigins("http://localhost:3000", "https://localhost:3001")
         .AllowAnyMethod()
-        .WithHeaders(HeaderNames.ContentType)
+        .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization)
 );
 
 // Configure the HTTP request pipeline.

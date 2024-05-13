@@ -11,7 +11,6 @@ using bloggit.DTOs;
 
     [Route("api/blog")]
     [ApiController]
-    [Authorize]
     public class BlogsController : ControllerBase
     {
         private readonly IBlogService _blogService;
@@ -24,8 +23,7 @@ using bloggit.DTOs;
         [HttpPost("create")]
         public async Task<IActionResult> CreateBlogAsync([FromBody] BlogCreateRequest model)
         {
-            var result = await _blogService.CreateBlogAsync(model);
-            return Ok(result);
+            return await _blogService.CreateBlogAsync(model);;
         }
 
         [HttpPut("{id}")]

@@ -49,15 +49,12 @@ namespace bloggit.Services.Service_Implements
             {
                 foreach (var tagName in model.Tags)
                 {
-                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName && !t.isDeleted);
                     if (tag == null)
                     {
                         tag = new Tags { Name = tagName };
                         _context.Tags.Add(tag);
                     }
-
-                    Console.WriteLine("Tag added!");
-                    Console.WriteLine(tag);
                     blog.Tags.Add(tag);
                 }
             }

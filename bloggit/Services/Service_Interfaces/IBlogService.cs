@@ -10,4 +10,5 @@ public interface IBlogService
     Task<IActionResult> DeleteBlogAsync(int id);
     Task<IActionResult> GetBlogByIdAsync(int id);
     Task<IActionResult> GetAllBlogsAsync();
+    Task<IActionResult> GetBlogsPaginate(int pageNumber, int pageSize, string sortingOption);
 }

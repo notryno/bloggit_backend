@@ -39,3 +39,20 @@ public class BlogUpdateRequest
     
     public ICollection<string>? Tags { get; set; }
 }
+
+public class PaginateFilter
+{
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+
+    public string? SortingOption { get; set; } = "random";
+}
+
+public class PaginateResponse<T>
+{
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public int TotalRecords { get; set; }
+    public IEnumerable<T> Data { get; set; } = Enumerable.Empty<T>();
+}

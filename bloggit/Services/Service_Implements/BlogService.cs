@@ -191,20 +191,19 @@ namespace bloggit.Services.Service_Implements
 
         public async Task<IActionResult> GetBlogByIdAsync(int id)
         {
+            // Find the blog in the database based on the provided ID
             var blog = await _context.Blogs
-                .Where(b => b.Id == id && !b.isDeleted)
-                .FirstOrDefaultAsync();
+                .Include(blog => blog.Tags)
+                .Include(blog => blog.User)
+                .Include(blog => blog.Reaction)
+                .FirstOrDefaultAsync(blog => blog.Id == id && !blog.isDeleted);
+
             if (blog == null)
             {
-                throw new Exception("Blog not found");
-            }
-            
-            var currentUser = await GetCurrentUserAsync();
-            if (!IsAuthorized(currentUser, blog))
-            {
-                return new ForbidResult();
+                return new NotFoundResult(); // Return a 404 response if the blog is not found
             }
 
+            // Map the blog entity to a DTO (Data Transfer Object) for serialization
             var blogDto = new BlogDto
             {
                 Id = blog.Id,
@@ -212,11 +211,24 @@ namespace bloggit.Services.Service_Implements
                 Summary = blog.Summary,
                 Content = blog.Content,
                 Author = blog.Author,
-                Image = blog.Image
+                AuthorFirstName = blog.User?.FirstName,
+                AuthorLastName = blog.User?.LastName,
+                AuthorUserName = blog.User?.UserName,
+                Image = blog.Image,
+                CreatedOn = blog.CreatedOn,
+                Tags = blog.Tags?.Select(t => t.Name).ToList(),
+                ReactionCount = blog.CalculateTotalReactions(),
+                Reactions = blog.Reaction.Select(r => new ReactionDto
+                {
+                    Id = r.Id,
+                    Type = r.Type,
+                    UserId = r.UserId,
+                }).ToList()
             };
 
-            return new OkObjectResult(blogDto);
+            return new OkObjectResult(blogDto); // Return a 200 OK response with the blog DTO
         }
+
 
         public async Task<IActionResult> GetAllBlogsAsync()
         {
@@ -251,7 +263,85 @@ namespace bloggit.Services.Service_Implements
 
             return new OkObjectResult(blogDtos);
         }
+
+        public async Task<IActionResult> GetBlogsPaginate(int pageNumber, int pageSize, string sortingOption)
+        {
+            IQueryable<Blogs> query = _context.Blogs
+                .Include(blog => blog.Tags)
+                .Include(blog => blog.User)
+                .Include(blog => blog.Reaction)
+                .Where(blog => !blog.isDeleted);
+
+            switch (sortingOption)
+            {
+                case "popularity":
+                    query = query.OrderByDescending(blog => blog.CalculateTotalReactions());
+                    break;
+                case "recency":
+                    query = query.OrderByDescending(blog => blog.CreatedOn);
+                    break;
+                case "random":
+                    var blogs = await query
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
         
+                    // Shuffle the blogs using Guid.NewGuid() for random order
+                    blogs = blogs.OrderBy(blog => Guid.NewGuid()).ToList();
+        
+                    // Return the shuffled blogs
+                    return new OkObjectResult(blogs.Select(blog => new BlogDto
+                    {
+                        Id = blog.Id,
+                        Title = blog.Title,
+                        Summary = blog.Summary,
+                        Content = blog.Content,
+                        Author = blog.Author,
+                        AuthorFirstName = blog.User?.FirstName,
+                        AuthorLastName = blog.User?.LastName,
+                        AuthorUserName = blog.User?.UserName,
+                        Image = blog.Image,
+                        CreatedOn = blog.CreatedOn,
+                        Tags = blog.Tags?.Select(t => t.Name).ToList(),
+                        ReactionCount = blog.CalculateTotalReactions(),
+                        Reactions = blog.Reaction.Select(r => new ReactionDto
+                        {
+                            Id = r.Id,
+                            Type = r.Type,
+                            UserId = r.UserId,
+                        }).ToList()
+                    }));
+            }
+
+            var pagedBlogs = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new OkObjectResult(pagedBlogs.Select(blog => new BlogDto
+            {
+                Id = blog.Id,
+                Title = blog.Title,
+                Summary = blog.Summary,
+                Content = blog.Content,
+                Author = blog.Author,
+                AuthorFirstName = blog.User?.FirstName,
+                AuthorLastName = blog.User?.LastName,
+                AuthorUserName = blog.User?.UserName,
+                Image = blog.Image,
+                CreatedOn = blog.CreatedOn,
+                Tags = blog.Tags?.Select(t => t.Name).ToList(),
+                ReactionCount = blog.CalculateTotalReactions(),
+                Reactions = blog.Reaction.Select(r => new ReactionDto
+                {
+                    Id = r.Id,
+                    Type = r.Type,
+                    UserId = r.UserId,
+                }).ToList()
+            }));
+        }
+
+
         private bool IsAuthorized(ApplicationUser currentUser, Blogs blog)
         {
             return currentUser.Id == blog.User.Id || _userManager.IsInRoleAsync(currentUser, "Admin").Result;

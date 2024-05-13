@@ -50,4 +50,10 @@ using bloggit.DTOs;
         {
             return await _blogService.GetAllBlogsAsync();
         }
+        
+        [HttpGet("/api/blogs/paginate")]
+        public async Task<IActionResult> GetBlogsPaginate([FromQuery] PaginateFilter filter)
+        {
+            return await _blogService.GetBlogsPaginate(filter.PageNumber, filter.PageSize, filter.SortingOption);
+        }
     }

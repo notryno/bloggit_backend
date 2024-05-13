@@ -9,5 +9,6 @@ namespace bloggit.Services.Service_Interfaces
     {
         Task<IActionResult> AddReaction(int blogId, CreateReactionDto model);
         Task<IActionResult> RemoveReaction(int reactionId, int blogId);
+        Task<ReactionCountDto> GetReactionCount(int blogId);
     }
 }

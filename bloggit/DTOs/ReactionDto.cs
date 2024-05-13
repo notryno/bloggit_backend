@@ -21,4 +21,10 @@ namespace bloggit.DTOs
     {
         public string Type { get; set; }
     }
+    
+    public class ReactionCountDto
+    {
+        public int UpvoteCount { get; set; }
+        public int DownvoteCount { get; set; }
+    }
 }

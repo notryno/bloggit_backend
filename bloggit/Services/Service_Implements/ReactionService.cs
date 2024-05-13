@@ -101,6 +101,25 @@ namespace bloggit.Services.Service_Implements
 
             return foundUser;
         }
+        
+        public async Task<ReactionCountDto> GetReactionCount(int blogId)
+        {
+            var upvoteCount = await _context.Reactions
+                .Where(r => r.BlogId == blogId && r.Type == "Upvote")
+                .CountAsync();
+
+            var downvoteCount = await _context.Reactions
+                .Where(r => r.BlogId == blogId && r.Type == "Downvote")
+                .CountAsync();
+
+            var reactionCount = new ReactionCountDto
+            {
+                UpvoteCount = upvoteCount,
+                DownvoteCount = downvoteCount
+            };
+
+            return reactionCount;
+        }
 
     }
 }

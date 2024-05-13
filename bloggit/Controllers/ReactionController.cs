@@ -29,5 +29,14 @@ namespace bloggit.Controllers
             var result = await _reactionService.RemoveReaction(id, blogId);
             return Ok(result);
         }
+        
+        [Route("count")]
+        [HttpGet]
+        public async Task<IActionResult> GetReactionCount(int blogId)
+        {
+            var reactionCount = await _reactionService.GetReactionCount(blogId);
+            return Ok(reactionCount);
+        }
+        
     }
 }

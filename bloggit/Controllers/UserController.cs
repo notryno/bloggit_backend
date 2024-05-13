@@ -6,7 +6,6 @@ using bloggit.Services.Service_Interfaces;
 
 namespace bloggit.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/user")]
     public class UserController : ControllerBase
@@ -19,18 +18,21 @@ namespace bloggit.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetUserByIdAsync(string id)
         {
             return await _userService.GetUserByIdAsync(id);
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateUserAsync(string id, [FromBody] UpdateUserRequest request)
         {
             return await _userService.UpdateUserAsync(id, request);
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteUserAsync(string id)
         {
             return await _userService.DeleteUserAsync(id);
@@ -41,6 +43,12 @@ namespace bloggit.Controllers
         public async Task<IActionResult> GetAllUsersAsync()
         {
             return await _userService.GetAllUsersAsync();
+        }
+        
+        [HttpGet("/api/user/public/{id}")]
+        public async Task<IActionResult> GetPublicUser(string id)
+        {
+            return await _userService.GetPublicUser(id);
         }
     }
 }

@@ -11,4 +11,5 @@ public interface IUserService
     Task<IActionResult> UpdateUserAsync(string id, UpdateUserRequest request);
     Task<IActionResult> DeleteUserAsync(string id);
     Task<IActionResult> GetAllUsersAsync();
+    Task<IActionResult> GetPublicUser(string id);
 }

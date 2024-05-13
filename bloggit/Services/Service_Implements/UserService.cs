@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using bloggit.DTOs;
 using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace bloggit.Services.Service_Implements
 {
@@ -147,6 +148,29 @@ namespace bloggit.Services.Service_Implements
         {
             var users = _userManager.Users;
             return Task.FromResult<IActionResult>(new OkObjectResult(users));
+        }
+        
+        public async Task<IActionResult> GetPublicUser(string id)
+        {
+            var requestedUser = await _userManager.FindByIdAsync(id);
+            if (requestedUser == null || requestedUser.isDeleted)
+            {
+                return new NotFoundResult();
+            }
+
+            var userDto = new PublicUserDto
+            {
+                Id = requestedUser.Id,
+                Username = requestedUser.UserName,
+                FirstName = requestedUser.FirstName,
+                LastName = requestedUser.LastName,
+                Country = requestedUser.Country,
+                Gender = requestedUser.Gender,
+                ProfilePicture = requestedUser.ProfilePicture,
+                CreatedOn = requestedUser.CreatedOn
+            };
+
+            return new OkObjectResult(userDto);
         }
     }
 }

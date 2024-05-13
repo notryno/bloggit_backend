@@ -13,6 +13,25 @@
         public ICollection<Tags>? Tags { get; set; }
         public ICollection<Reactions> Reaction { get; set; }
         public ICollection<Logs> Logs { get; set; }
+        
+        public int CalculateTotalReactions()
+        {
+            int totalReactions = 0;
+
+            foreach (var reaction in Reaction)
+            {
+                if (reaction.Type == "Upvote")
+                {
+                    totalReactions += 1;
+                }
+                else if (reaction.Type == "Downvote")
+                {
+                    totalReactions -= 1;
+                }
+            }
+
+            return totalReactions;
+        }
 
     }
 }

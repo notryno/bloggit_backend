@@ -221,6 +221,9 @@ namespace bloggit.Services.Service_Implements
         public async Task<IActionResult> GetAllBlogsAsync()
         {
             var blogs = await _context.Blogs
+                .Include(blog => blog.Tags)
+                .Include(blog => blog.User)
+                .Include(blog => blog.Reaction)
                 .Where(blog => !blog.isDeleted)
                 .ToListAsync();
 
@@ -231,7 +234,19 @@ namespace bloggit.Services.Service_Implements
                 Summary = blog.Summary,
                 Content = blog.Content,
                 Author = blog.Author,
-                Image = blog.Image
+                AuthorFirstName = blog.User?.FirstName,
+                AuthorLastName = blog.User?.LastName,
+                AuthorUserName = blog.User?.UserName,
+                Image = blog.Image,
+                CreatedOn = blog.CreatedOn,
+                Tags = blog.Tags?.Select(t => t.Name).ToList(),
+                ReactionCount = blog.CalculateTotalReactions(),
+                Reactions = blog.Reaction.Select(r => new ReactionDto
+                {
+                    Id = r.Id,
+                    Type = r.Type,
+                    UserId = r.UserId,
+                }).ToList()
             });
 
             return new OkObjectResult(blogDtos);

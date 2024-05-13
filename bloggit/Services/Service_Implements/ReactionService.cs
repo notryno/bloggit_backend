@@ -7,134 +7,99 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using bloggit.Data;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using ConflictResult = System.Web.Http.Results.ConflictResult;
 
 namespace bloggit.Services.Service_Implements
 {
     public class ReactionService : IReactionService
     {
         private readonly AppDbContext _context;
+        private readonly ILogService _logService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReactionService(AppDbContext context)
+        public ReactionService(AppDbContext context, ILogService logService, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _logService = logService;
+            _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
         }
 
-        public async Task<IEnumerable<ReactionDto>> GetAllReactionsAsync()
+
+        public async Task<IActionResult> AddReaction(int blogId, CreateReactionDto reactionDto)
         {
-            var reactions = await _context.Reactions
-                .Select(r => new ReactionDto
-                {
-                    Id = r.Id,
-                    Type = r.Type,
-                    BlogId = r.BlogId,
-                    CommentId = r.CommentId,
-                    UserId = r.UserId
-                })
-                .ToListAsync();
+            var currentUser = await GetCurrentUserAsync();
+            var blog = await _context.Blogs.Include(b => b.Reaction).FirstOrDefaultAsync(b => b.Id == blogId);
+            if (blog == null)
+            {
+                return new NotFoundObjectResult("Blog not found");
+            }
 
-            return reactions;
-        }
+            var existingReaction = blog.Reaction.FirstOrDefault(r => r.UserId == reactionDto.UserId);
+            if (existingReaction != null)
+            {
+                return new ConflictObjectResult("User has already reacted.");
+            }
 
-        public async Task<ReactionDto> GetReactionByIdAsync(int id)
-        {
-            var reaction = await _context.Reactions
-                .Where(r => r.Id == id)
-                .Select(r => new ReactionDto
-                {
-                    Id = r.Id,
-                    Type = r.Type,
-                    BlogId = r.BlogId,
-                    CommentId = r.CommentId,
-                    UserId = r.UserId
-                })
-                .FirstOrDefaultAsync();
-
-            if (reaction == null)
-                throw new Exception("Reaction not found");
-
-            return reaction;
-        }
-
-        public async Task<ReactionDto> CreateReactionAsync(CreateReactionDto model)
-        {
             var reaction = new Reactions
             {
-                Type = model.Type,
-                BlogId = model.BlogId,
-                CommentId = model.CommentId,
-                UserId = model.UserId,
-                CreatedOn = DateTime.Now,
-                // isLatest = true
+                Type = reactionDto.Type,
+                BlogId = blogId,
+                UserId = reactionDto.UserId,
+                CreatedOn = DateTime.Now
             };
 
             _context.Reactions.Add(reaction);
+            await _logService.LogReactionActionAsync(reactionDto.Type, $"User {currentUser.UserName} {reactionDto.Type.ToLower()} blog {blogId}", currentUser.Id);
             await _context.SaveChangesAsync();
 
-            var reactionDto = new ReactionDto
-            {
-                Id = reaction.Id,
-                Type = reaction.Type,
-                BlogId = reaction.BlogId,
-                CommentId = reaction.CommentId,
-                UserId = reaction.UserId,
-            };
 
-            return reactionDto;
-        }
-
-        public async Task<ReactionDto> UpdateReactionAsync(int id, UpdateReactionDto model)
-        {
-            var existingReaction = await _context.Reactions.FindAsync(id);
-            if (existingReaction == null)
-                throw new Exception("Reaction not found");
-
-            // Check if a reaction already exists for the specified blog or comment by the user
-            var sameUserReaction = await _context.Reactions
-                .FirstOrDefaultAsync(r => r.Id != id && r.BlogId == existingReaction.BlogId && r.CommentId == existingReaction.CommentId && r.UserId == existingReaction.UserId);
-
-            if (sameUserReaction != null)
-            {
-                if (model.Type == existingReaction.Type)
-                {
-                    // User is trying to upvote/downvote again; handle it accordingly
-                    throw new Exception("User already reacted with the same type");
-                }
-                else
-                {
-                    // User is un-voting; delete the existing reaction
-                    _context.Reactions.Remove(existingReaction);
-                    await _context.SaveChangesAsync();
-                    return null; // Return null or a custom response indicating successful un-vote
-                }
-            }
-
-            // Update the existing reaction
-            existingReaction.Type = model.Type;
-            await _context.SaveChangesAsync();
-
-            var updatedReactionDto = new ReactionDto
-            {
-                Id = existingReaction.Id,
-                Type = existingReaction.Type,
-                BlogId = existingReaction.BlogId,
-                CommentId = existingReaction.CommentId,
-                UserId = existingReaction.UserId
-            };
-
-            return updatedReactionDto;
+            return new OkObjectResult("Reaction added successfully");
         }
 
 
-        public async Task<bool> DeleteReactionAsync(int id)
+        public async Task<IActionResult> RemoveReaction(int reactionId, int blogId)
         {
-            var reaction = await _context.Reactions.FindAsync(id);
+            var reaction = await _context.Reactions.FirstOrDefaultAsync(r => r.Id == reactionId && r.BlogId == blogId);
             if (reaction == null)
-                throw new Exception("Reaction not found");
+            {
+                return new NotFoundObjectResult("Reaction not found");
+            }
+            
+            var currentUser = await GetCurrentUserAsync();
 
             _context.Reactions.Remove(reaction);
+            await _logService.LogReactionActionAsync("Un-React", $"User {currentUser.UserName} un-reacted blog {blogId}", currentUser.Id);
             await _context.SaveChangesAsync();
 
-            return true;
+
+            return new OkObjectResult("Reaction removed successfully");
+        }
+        
+        private async Task<ApplicationUser?> GetCurrentUserAsync()
+        {
+            var user = _httpContextAccessor.HttpContext.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+            {
+                return null;
+            }
+
+            var userIdClaim = user.FindFirst("userId");
+            if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
+            {
+                return null;
+            }
+            var foundUser = await _userManager.FindByIdAsync(userIdClaim.Value);
+            if (foundUser == null || foundUser.isDeleted)
+            {
+                return null;
+            }
+
+            return foundUser;
         }
 
     }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bloggit.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/blogs/{blogId}/reactions")]
     [ApiController]
     public class ReactionsController : ControllerBase
     {
@@ -16,38 +16,17 @@ namespace bloggit.Controllers
             _reactionService = reactionService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllReactionsAsync()
-        {
-            var reactions = await _reactionService.GetAllReactionsAsync();
-            return Ok(reactions);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetReactionByIdAsync(int id)
-        {
-            var reaction = await _reactionService.GetReactionByIdAsync(id);
-            return Ok(reaction);
-        }
-
         [HttpPost]
-        public async Task<IActionResult> CreateReactionAsync([FromBody] CreateReactionDto model)
+        public async Task<IActionResult> AddReaction(int blogId, [FromBody] CreateReactionDto model)
         {
-            var reaction = await _reactionService.CreateReactionAsync(model);
+            var reaction = await _reactionService.AddReaction(blogId, model);
             return Ok(reaction);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReactionAsync(int id, [FromBody] UpdateReactionDto model)
-        {
-            var updatedReaction = await _reactionService.UpdateReactionAsync(id, model);
-            return Ok(updatedReaction);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReactionAsync(int id)
+        public async Task<IActionResult> RemoveReaction(int id, int blogId)
         {
-            var result = await _reactionService.DeleteReactionAsync(id);
+            var result = await _reactionService.RemoveReaction(id, blogId);
             return Ok(result);
         }
     }

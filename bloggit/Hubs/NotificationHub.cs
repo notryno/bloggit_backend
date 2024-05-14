@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
+using bloggit.DTOs;
 
 namespace bloggit.Hubs
 {
-    public class NotificationHub : Hub
+    public class NotificationHub : Hub<IChatClient>
     {
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(ChatMessage message)
         {
             Console.WriteLine("Message sent");
-            await Clients.All.SendAsync("ReceiveNotification", user, message);
+            await Clients.All.ReceiveMessage(message);
         }
     }
 }

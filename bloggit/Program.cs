@@ -37,7 +37,7 @@ else
 }
 
 
-builder.Services.AddSignalR();
+
 
 //Identity
 // builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -100,6 +100,7 @@ builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSignalR();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -108,7 +109,7 @@ builder.Services.AddEndpointsApiExplorer();
 var app = builder.Build();
 
 app.UseCors(policy =>
-    policy.WithOrigins("http://localhost:3000", "https://localhost:3001")
+    policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
         .AllowAnyMethod()
         .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization)
 );
@@ -122,7 +123,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// app.UseRouting();
+app.UseRouting();
+
+app.UseCors("ClientPermission");
 
 app.UseAuthentication();
 
@@ -130,11 +133,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// app.UseEndpoints(endpoints =>
-// {
-//     endpoints.MapControllers();
-//     endpoints.MapHub<NotificationHub>("/notificationHub");
-// });
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<NotificationHub>("/hubs/notification");
+});
 
 // using (var scope = app.Services.CreateScope())
 // {

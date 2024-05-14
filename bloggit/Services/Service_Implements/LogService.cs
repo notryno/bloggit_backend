@@ -1,18 +1,22 @@
 using System;
 using System.Threading.Tasks;
 using bloggit.Data;
+using bloggit.Hubs;
 using bloggit.Models;
 using bloggit.Services.Service_Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace bloggit.Services.Service_Implements
 {
     public class LogService : ILogService
     {
         private readonly AppDbContext _context;
+        private IHubContext<NotificationHub> _hub;
 
-        public LogService(AppDbContext context)
+        public LogService(AppDbContext context, IHubContext<NotificationHub> hub)
         {
             _context = context;
+            _hub = hub;
         }
 
         public async Task LogBlogActionAsync(int blogId, string actionType, string description, string userId)
@@ -56,6 +60,8 @@ namespace bloggit.Services.Service_Implements
             };
 
             _context.Logs.Add(log);
+            
+            var result = _hub.Clients.All.SendAsync("ReceiveNotification", "Log", "New log added");
             await _context.SaveChangesAsync();
         }
     }
